@@ -3,6 +3,7 @@
 #include "engine.h"
 #include <QtCore/qcommandlineparser.h>
 #include <qdebug.h>
+#include <qcryptographichash.h>
 
 #include <iostream>
 
@@ -11,6 +12,8 @@ int main(int argc, char *argv[])
 	QCoreApplication a(argc, argv);
 	QCoreApplication::setApplicationName("hbbengine");
 	QCoreApplication::setApplicationVersion("1.0.0");
+
+	Engine * e;
 
 	QCommandLineParser parser;
 	parser.setApplicationDescription(QCoreApplication::translate("main", "Hash Based Blacklist Engine"));
@@ -30,21 +33,26 @@ int main(int argc, char *argv[])
 
 	parser.process(a);
 
+	QString data;
+
 	if (parser.isSet(scanOption)) {
-		const QString scanS = parser.value(scanOption);
-		qDebug() << scanS;
+		data = parser.value(scanOption);
+		qDebug() << data;
 	}
 	else if (parser.isSet(lookupOption)) {
-		const QString lookupS = parser.value(lookupOption);
-		qDebug() << lookupS;
+		data = parser.value(lookupOption);
+		qDebug() << data;
 	}
 	else if (parser.isSet(generateHashOption)) {
-		const QString generateHashS = parser.value(generateHashOption);
-		qDebug() << generateHashS;
+		data = parser.value(generateHashOption);
+		qDebug() << "MD5: " << e->generateFileHash(data, QCryptographicHash::Md5);
+		qDebug() << "SHA1: " << e->generateFileHash(data, QCryptographicHash::Sha1);
+		qDebug() << "SHA256: " << e->generateFileHash(data, QCryptographicHash::Sha256);
+		return 0;
 	}
 	else if (parser.isSet(scanFolderOption)) {
-		const QString folderS = parser.value(scanFolderOption);
-		qDebug() << folderS;
+		data = parser.value(scanFolderOption);
+		qDebug() << data;
 	}
 
 	return a.exec();
