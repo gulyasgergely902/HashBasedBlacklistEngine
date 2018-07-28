@@ -1,8 +1,9 @@
 #include <QtCore/QCoreApplication>
 
 #include "engine.h"
+#include "Utils.h"
+#include "DBHandler.h"
 #include <QtCore/qcommandlineparser.h>
-#include <qdebug.h>
 #include <qcryptographichash.h>
 
 #include <iostream>
@@ -13,7 +14,9 @@ int main(int argc, char *argv[])
 	QCoreApplication::setApplicationName("hbbengine");
 	QCoreApplication::setApplicationVersion("1.0.0");
 
-	Engine * e;
+	Engine * engine;
+	Utils * utils;
+	DBHandler * dbhandler;
 
 	QCommandLineParser parser;
 	parser.setApplicationDescription(QCoreApplication::translate("main", "Hash Based Blacklist Engine"));
@@ -37,7 +40,10 @@ int main(int argc, char *argv[])
 
 	if (parser.isSet(scanOption)) {
 		data = parser.value(scanOption);
-		qDebug() << data;
+		QString md5 = engine->generateFileHash(data, QCryptographicHash::Md5);
+		QString sha1 = engine->generateFileHash(data, QCryptographicHash::Sha1);
+		QString sha256 = engine->generateFileHash(data, QCryptographicHash::Sha256);
+		return 0;
 	}
 	else if (parser.isSet(lookupOption)) {
 		data = parser.value(lookupOption);
@@ -45,9 +51,9 @@ int main(int argc, char *argv[])
 	}
 	else if (parser.isSet(generateHashOption)) {
 		data = parser.value(generateHashOption);
-		qDebug() << "MD5: " << e->generateFileHash(data, QCryptographicHash::Md5);
-		qDebug() << "SHA1: " << e->generateFileHash(data, QCryptographicHash::Sha1);
-		qDebug() << "SHA256: " << e->generateFileHash(data, QCryptographicHash::Sha256);
+		utils->print("MD5: " + engine->generateFileHash(data, QCryptographicHash::Md5));
+		utils->print("SHA1: " + engine->generateFileHash(data, QCryptographicHash::Sha1));
+		utils->print("SHA256: " + engine->generateFileHash(data, QCryptographicHash::Sha256));
 		return 0;
 	}
 	else if (parser.isSet(scanFolderOption)) {
