@@ -20,12 +20,27 @@ QString Engine::generateFileHash(QString path, QCryptographicHash::Algorithm alg
 	if (file.open(QFile::ReadOnly)) {
 		QCryptographicHash hash(algorithm);
 		if (hash.addData(&file)) {
-			return hash.result();
+			return hash.result().toHex();
 		}
 
 	}
 
 	return "null";
 }
+
+QStringList Engine::findFilesInFolder(const QString & path)
+{
+	QStringList results;
+	QDirIterator it(path, QDirIterator::NoIteratorFlags);
+	while (it.hasNext()) {
+		it.next();
+		if (QFileInfo(it.filePath()).isFile()) {
+			results << it.filePath();
+		}
+	}
+	return results;
+}
+
+
 
 
