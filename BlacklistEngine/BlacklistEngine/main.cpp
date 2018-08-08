@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
 
 	dbhandler->connectToDb();
 
+	//TODO: Separate the handling of menu into a separate class.
 	QCommandLineParser parser;
 	parser.setApplicationDescription(QCoreApplication::translate("main", "Given a file or folder, the application checks whether it was compromised or not."));
 	parser.addHelpOption();
