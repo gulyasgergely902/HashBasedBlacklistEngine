@@ -99,5 +99,14 @@ int main(int argc, char *argv[])
 		parser.showHelp();
 	}
 
+	engine = NULL;
+	delete engine;
+
+	utils = NULL;
+	delete utils;
+
+	dbhandler = NULL;
+	delete dbhandler;
+
 	return a.exec();
 }
