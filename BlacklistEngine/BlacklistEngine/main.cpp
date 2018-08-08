@@ -15,10 +15,6 @@ int main(int argc, char *argv[])
 	QCoreApplication::setApplicationName("hbbengine");
 	QCoreApplication::setApplicationVersion("1.0.0");
 
-	Engine * engine;
-	Utils * utils;
-	DBHandler * dbhandler;
-
 	dbhandler->connectToDb();
 
 	QCommandLineParser parser;
@@ -41,6 +37,11 @@ int main(int argc, char *argv[])
 
 	QString data;
 
+	Engine * engine;
+	Utils * utils;
+	DBHandler * dbhandler;
+
+	//TODO: Switch!
 	if (parser.isSet(scanOption)) {
 		data = parser.value(scanOption);
 		if (!QFileInfo::exists(data)) {
