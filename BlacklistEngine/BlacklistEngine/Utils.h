@@ -2,6 +2,7 @@
 
 #include <qdebug.h>
 #include <QtCore\qcoreapplication.h>
+#include <qcommandlineparser.h>
 
 class Utils
 {

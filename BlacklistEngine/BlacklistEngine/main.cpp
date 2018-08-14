@@ -6,8 +6,14 @@
 #include <QtCore/qcommandlineparser.h>
 #include <qcryptographichash.h>
 #include <qfileinfo.h>
+#include <qmap.h>
 
-#include <iostream>
+enum Option {
+	scanOption,
+	lookupOption,
+	generateHashOption,
+	scanFolderOption
+};
 
 int main(int argc, char *argv[])
 {
@@ -15,11 +21,11 @@ int main(int argc, char *argv[])
 	QCoreApplication::setApplicationName("hbbengine");
 	QCoreApplication::setApplicationVersion("1.0.0");
 
-	DBHandler * dbhandler;
+	Engine engine;
+	Utils utils;
 
-	dbhandler->connectToDb();
+	engine.init();
 
-	//TODO: Separate the handling of menu into a separate class.
 	QCommandLineParser parser;
 	parser.setApplicationDescription(QCoreApplication::translate("main", "Given a file or folder, the application checks whether it was compromised or not."));
 	parser.addHelpOption();
@@ -38,62 +44,60 @@ int main(int argc, char *argv[])
 
 	parser.process(a);
 
-	QString data;
-
-	Engine * engine;
-	Utils * utils;
-
-	//TODO: Switch!
 	if (parser.isSet(scanOption)) {
-		data = parser.value(scanOption);
-		if (!QFileInfo::exists(data)) {
-			utils->print("File not found!");
-			return 0;
-		}
-		QString md5 = engine->generateFileHash(data, QCryptographicHash::Md5);
-		QString sha1 = engine->generateFileHash(data, QCryptographicHash::Sha1);
-		QString sha256 = engine->generateFileHash(data, QCryptographicHash::Sha256);
-		if (dbhandler->findInDB(md5, sha1, sha256)) {
-			utils->print("Result: Blocked");
-		}
-		else {
-			utils->print("Result: No threat detected");
+		QString path = parser.value(scanOption);
+
+		switch (engine.scanFile(path)) {
+		case 0:
+			utils.print("Result: No threat detected");
+			break;
+		case 1:
+			utils.print("Result: Blocked");
+			break;
+		case -1:
+			utils.print("Error: File not found!");
+			break;
 		}
 		return 0;
 	}
 	else if (parser.isSet(lookupOption)) {
-		data = parser.value(lookupOption);
-		if (dbhandler->findInDB(data)) {
-			utils->print("Result: Blocked");
-		}
-		else {
-			utils->print("Result: No threat detected");
+		QString hash = parser.value(lookupOption);
+
+		switch (engine.lookup(parser.value(lookupOption))) {
+		case true:
+			utils.print("Result: Blocked");
+			break;
+		case false:
+			utils.print("Result: No threat detected");
+			break;
 		}
 		return 0;
 	}
 	else if (parser.isSet(generateHashOption)) {
-		data = parser.value(generateHashOption);
-		utils->print("MD5: " + engine->generateFileHash(data, QCryptographicHash::Md5));
-		utils->print("SHA1: " + engine->generateFileHash(data, QCryptographicHash::Sha1));
-		utils->print("SHA256: " + engine->generateFileHash(data, QCryptographicHash::Sha256));
+		QString file = parser.value(generateHashOption);
+		utils.print("MD5: " + engine.generateFileHash(file, QCryptographicHash::Md5));
+		utils.print("SHA1: " + engine.generateFileHash(file, QCryptographicHash::Sha1));
+		utils.print("SHA256: " + engine.generateFileHash(file, QCryptographicHash::Sha256));
 		return 0;
 	}
 	else if (parser.isSet(scanFolderOption)) {
-		data = parser.value(scanFolderOption);
-		if (!QFileInfo::exists(data)) {
-			utils->print("Given folder not found!");
+		QString folderPath = parser.value(scanFolderOption);
+		if (!QFileInfo::exists(folderPath)) {
+			utils.print("Given folder not found!");
 			return 0;
 		}
-		QStringList results = engine->findFilesInFolder(data);
+		QStringList results = engine.findFilesInFolder(folderPath);
 		for (auto it = results.begin(); it != results.end(); ++it) {
-			QString md5 = engine->generateFileHash(*it, QCryptographicHash::Md5);
-			QString sha1 = engine->generateFileHash(*it, QCryptographicHash::Sha1);
-			QString sha256 = engine->generateFileHash(*it, QCryptographicHash::Sha256);
-			if (dbhandler->findInDB(md5, sha1, sha256)) {
-				utils->print("Result for " + *it + ": Blocked");
-			}
-			else {
-				utils->print("Result for " + *it + ": No threat detected");
+			switch (engine.scanFile(*it)) {
+			case 0:
+				utils.print("File: " + *it + ", Result: Blocked");
+				break;
+			case 1:
+				utils.print("FIle: " + *it + ", Result: No threat detected");
+				break;
+			case -1:
+				utils.print("Error: File not found!");
+				break;
 			}
 		}
 		return 0;
@@ -101,15 +105,6 @@ int main(int argc, char *argv[])
 	else {
 		parser.showHelp();
 	}
-
-	engine = NULL;
-	delete engine;
-
-	utils = NULL;
-	delete utils;
-
-	dbhandler = NULL;
-	delete dbhandler;
 
 	return a.exec();
 }

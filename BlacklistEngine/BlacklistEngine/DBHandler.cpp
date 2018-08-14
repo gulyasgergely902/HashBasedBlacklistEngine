@@ -18,7 +18,6 @@ bool DBHandler::connectToDb()
 	QString path = QDir::currentPath() + "/hashDB.db";
 	db.setDatabaseName(path);
 	if (!db.open()) {
-		utils->print("Error connecting to database!");
 		return false;
 	}
 	return true;
@@ -37,9 +36,6 @@ bool DBHandler::findInDB(const QString& md5, const QString& sha1, const QString&
 			found = true;
 		}
 	}
-	else {
-		utils->print("Database error: " + query.lastError().text());
-	}
 
 	return found;
 }
@@ -56,9 +52,6 @@ bool DBHandler::findInDB(const QString & data)
 		while (query.next()) {
 			found = true;
 		}
-	}
-	else {
-		utils->print("Database error: " + query.lastError().text());
 	}
 
 	return found;
